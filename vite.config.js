@@ -6,4 +6,10 @@ export default defineConfig({
         host: "0.0.0.0",
         port: process.env.PORT ?? 5173,
     },
+    plugins: [
+        laravel({
+            input: ["resources/css/app.css", "resources/js/app.js"],
+            refresh: true,
+        }),
+    ],
 });
