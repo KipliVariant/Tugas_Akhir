@@ -32,7 +32,7 @@ class BarangController extends Controller
             // kalau 'semua' atau null gak perlu difilter
         }
 
-        $barangs = $query->paginate(6)->withQueryString(); // biar paginasi tetep bawa query search & filter
+        $barangs = $query->paginate(6); // biar paginasi tetep bawa query search & filter
 
         return view('barang.index', compact('barangs'));
     }
@@ -122,12 +122,10 @@ class BarangController extends Controller
 
         return redirect()->back()->with('status', 'Alamat berhasil diperbarui!');
     }
-
-
-
     public function show($id)
     {
         $barang = Barang::findOrFail($id);
+        $barang = Barang::with('ulasanDariSemuaPembelian.pembelian.user')->findOrFail($id);
         return view('barang.detail', compact('barang'));
     }
 

@@ -52,21 +52,62 @@
                     {{ ucwords(str_replace('_', ' ', $pembelian->status)) }}
                 </div>
             </div>
+            @if($pembelian->status == 'sudah_dikirim')
+            <div class="mt-4">
+                <h6 class="fw-bold mb-2">📝 Beri Ulasan dan Rating</h6>
+                <form action="{{ route('ulasan.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="pembelian_id" value="{{ $pembelian->id }}">
+                    <div class="mb-2">
+                        <label for="rating" class="form-label">Rating (1-5):</label>
+                        <select name="rating" id="rating" class="form-select" required>
+                            <option value="">Pilih rating</option>
+                            @for($i = 1; $i <= 5; $i++)
+                                <option value="{{ $i }}">{{ $i }} ⭐</option>
+                                @endfor
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label for="ulasan" class="form-label">Ulasan:</label>
+                        <textarea name="ulasan" id="ulasan" rows="3" class="form-control" placeholder="Tulis pendapat kamu..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm">Kirim Ulasan</button>
+                </form>
+            </div>
+            @endif
 
-            <!-- Jika admin, tampilkan form update status -->
-            @if(auth()->user()->role === 'admin')
             <form action="{{ route('penjualan.updateStatus', $pembelian->id) }}" method="POST" class="mt-3">
                 @csrf
                 @method('PATCH')
                 <div class="form-group">
                     <select name="status" class="form-select">
-                        <option value="belum_dikirim" {{ $pembelian->status == 'belum_dikirim' ? 'selected' : '' }}>Belum Dikirim</option>
-                        <option value="sudah_dikirim" {{ $pembelian->status == 'sudah_dikirim' ? 'selected' : '' }}>Sudah Dikirim</option>
+                        <option value="belum_dikirim" {{ $pembelian->status == 'belum_dikirim' ? 'selected' : '' }}>Belum Terkirim</option>
+                        <option value="sudah_dikirim" {{ $pembelian->status == 'sudah_dikirim' ? 'selected' : '' }}>Sudah Terkirim</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary btn-sm mt-2">Update Status</button>
             </form>
+            @if($pembelian->ulasan)
+            <hr class="my-4">
+            <div class="mt-3">
+                <h6 class="fw-bold mb-2">📝 Ulasan dari Kamu</h6>
+                <div>
+                    <strong>Rating:</strong>
+                    @for($i = 1; $i <= 5; $i++)
+                        @if($i <=$pembelian->ulasan->rating)
+                        ⭐
+                        @else
+                        ☆
+                        @endif
+                        @endfor
+                </div>
+                <div class="mt-2">
+                    <strong>Ulasan:</strong>
+                    <p class="text-muted mb-0">{{ $pembelian->ulasan->ulasan }}</p>
+                </div>
+            </div>
             @endif
+
         </div>
     </div>
     @empty

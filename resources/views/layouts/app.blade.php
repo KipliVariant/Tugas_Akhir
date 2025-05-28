@@ -132,6 +132,16 @@
             @yield('content')
         </main>
     </div>
+    <footer class="py-3 mt-5" style="background-color: #5D4037; color: #fff; font-family: 'Poppins', sans-serif; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+        <div class="container d-flex justify-content-between align-items-center">
+            <small>🍪 Created by <strong>Rafli Putra Firyando </strong>XII RPL 1</small>
+            <div class="d-flex align-items-center gap-2">
+                <img src="{{ asset('images/smkfatahillah1.jpeg') }}" alt="Logo SMK" style="height: 30px; width: 30px; border-radius: 50%; object-fit: cover; border: 1px solid white;">
+                <small><strong>SMK FATAHILLAH CILEUNGSI</strong></small>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>

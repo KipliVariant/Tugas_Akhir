@@ -56,6 +56,23 @@
                 </div>
                 <div class="card-body">
                     <h5 class="card-title fw-semibold text-brown">{{ $barang->nama_barang }}</h5>
+
+                    <!-- Tambah rating di sini -->
+                    <div class="mb-2" style="color: #6f4e37; font-size: 1.1rem; pointer-events: none;">
+                        @php
+                        $avgRating = $barang->ulasanDariSemuaPembelian->avg('rating') ?? 0;
+                        $roundedRating = round($avgRating);
+                        @endphp
+                        @for ($i = 1; $i <= 5; $i++)
+                            @if ($i <=$roundedRating)
+                            ⭐
+                            @else
+                            ☆
+                            @endif
+                            @endfor
+                            <span class="text-muted" style="font-size: 0.9rem;">({{ number_format($avgRating, 1) }})</span>
+                    </div>
+
                     <p class="fs-5">💰 Harga: Rp {{ number_format($barang->harga, 0, ',', '.') }} <span class="text-muted">(per pack)</span></p>
                     <p class="card-text">📦 Stok: {{ $barang->stok }}</p>
                     <div class="d-flex justify-content-center gap-2 mt-3">
@@ -81,6 +98,7 @@
             </div>
         </div>
 
+
         <!-- Modal Detail Barang -->
         <!-- Modal Detail Barang -->
         <div class="modal fade" id="barangModal{{ $barang->id }}" tabindex="-1" aria-labelledby="barangModalLabel{{ $barang->id }}" aria-hidden="true">
@@ -92,20 +110,26 @@
                     </div>
                     <div class="modal-body">
                         <div class="row">
-                            <div class="col-md-6">
-                                <img src="{{ asset('storage/' . $barang->foto) }}" class="img-fluid rounded" alt="{{ $barang->nama_barang }}">
+                            <div class="col-md-5">
+                                <img src="{{ asset('storage/' . $barang->foto) }}" class="img-fluid rounded" alt="{{ $barang->nama_barang }}" style="max-height: 280px; object-fit: contain;">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-7">
                                 <p class="fs-5">💰 Harga: Rp {{ number_format($barang->harga, 0, ',', '.') }} / pack</p>
                                 <p class="fs-6">📦 Per pack: {{ $barang->isi_per_pcs }}</p>
-
                                 <p class="fs-6">📦 Stok: {{ $barang->stok }}</p>
                                 <hr>
                                 <p class="fs-6 text-muted mb-3">{{ $barang->deskripsi }}</p>
+
+                                <!-- Tombol Lihat Ulasan -->
+                                <div class="mt-3">
+                                    <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#ulasanModal{{ $barang->id }}">
+                                        ⭐ Lihat Ulasan Pembeli
+                                    </button>
+
+                                </div>
                             </div>
                         </div>
                     </div>
-
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -113,6 +137,52 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal Ulasan -->
+        <div class="modal fade" id="ulasanModal{{ $barang->id }}" tabindex="-1" aria-labelledby="ulasanModalLabel{{ $barang->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ulasanModalLabel{{ $barang->id }}">📝 Ulasan untuk {{ $barang->nama_barang }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        @forelse ($barang->ulasanDariSemuaPembelian as $ulasan)
+                        <div class="card mb-3 shadow-sm p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>{{ $ulasan->pembelian->user->name ?? 'Pembeli' }}</strong>
+                                <div class="text-warning">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        @if ($i <=$ulasan->rating)
+                                        ⭐
+                                        @else
+                                        ☆
+                                        @endif
+                                        @endfor
+                                </div>
+                            </div>
+                            <p class="text-muted mt-2 mb-0">{{ $ulasan->ulasan }}</p>
+
+                            @if(auth()->id() === $ulasan->pembelian->user_id)
+                            <form action="{{ route('ulasan.destroy', $ulasan->id) }}" method="POST" onsubmit="return confirm('Yakin ingin hapus ulasan?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger mt-2">Hapus</button>
+                            </form>
+                            @endif
+                        </div>
+                        @empty
+                        <p class="text-muted text-center">Belum ada ulasan untuk kue ini 😢</p>
+                        @endforelse
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal Pembelian -->
         <!-- Modal Pembelian -->
         <div class="modal fade" id="pembelianModal{{ $barang->id }}" tabindex="-1" aria-labelledby="pembelianModalLabel{{ $barang->id }}" aria-hidden="true">
@@ -128,15 +198,15 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <label class="form-label text-brown fw-semibold">Nama Lengkap</label>
-                                    <input type="text" placeholder="Masukan Nama!" name="nama" class="form-control rounded-pill" required>
+                                    <input type="text" name="nama" placeholder="Masukkan nama terlebih dahulu!" class="form-control rounded-pill" value="{{ auth()->user()->name }}" readonly>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-brown fw-semibold">Nomor HP</label>
-                                    <input type="text" placeholder="Masukan Nomor HP!" name="no_hp" class="form-control rounded-pill" required>
+                                    <input type="text" name="no_hp" placeholder="Masukkan nomor hp terlebih dahulu!" class="form-control rounded-pill" value="{{ auth()->user()->no_hp }}" readonly>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label text-brown fw-semibold">Alamat</label>
-                                    <textarea name="alamat" placeholder="Masukan Alamatnya, Contoh: Bukit Menteng Blok A0 No 0" class="form-control rounded-4" rows="3" required></textarea>
+                                    <textarea name="alamat" placeholder="Isi alamat lengkap terlebih dahulu di halaman profil!" class="form-control rounded-4" rows="3" readonly>{{ auth()->user()->alamat }}</textarea>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-brown fw-semibold">Jumlah Kue</label>
@@ -175,10 +245,6 @@
                                         </a>
                                     </div>
                                 </div>
-
-
-
-
                                 <div class="col-12">
                                     <label class="form-label text-brown fw-semibold">Catatan Ongkir</label>
                                     <!-- <div class="form-control rounded-pill bg-light text-muted" style="padding-top: 10px; padding-bottom: 10px;">
@@ -188,7 +254,6 @@
                                         ⚠️ <strong>Catatan:</strong> 🚚 Pengiriman ke luar Menteng akan dikenakan <b><u>ongkir Rp 2.000</u></b> ya~ 🍰
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                         <div class="modal-footer bg-light rounded-bottom-4">
@@ -196,7 +261,6 @@
                             @if ($barang->stok < 1)
                                 <span class="badge bg-danger rounded-pill position-absolute top-0 end-0 m-2">Stok Habis</span>
                                 @endif
-
                                 <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold">✅ Beli</button>
                         </div>
                         <input type="hidden" name="barang_id" value="{{ $barang->id }}">
@@ -239,7 +303,6 @@
             </li>
             @endif
             @endforeach
-
             {{-- Tombol Berikutnya --}}
             @if ($barangs->hasMorePages())
             <li class="page-item">

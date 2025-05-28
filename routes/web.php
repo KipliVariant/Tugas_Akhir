@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\UlasanController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\PenjualanController;
 use App\Http\Controllers\Admin\UserController;
@@ -38,6 +39,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('penjualan', PenjualanController::class);
     Route::put('/update-alamat', [barangcontroller::class, 'updateAlamat'])->name('update-alamat');
 });
+Route::post('/ulasan', [UlasanController::class, 'store'])->name('ulasan.store');
+Route::delete('/ulasan/{ulasan}', [UlasanController::class, 'destroy'])->name('ulasan.destroy');
 
 // Route khusus admin
 Route::middleware(['auth', 'admin'])->group(function () {
@@ -49,8 +52,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/barang/{id}', [BarangController::class, 'destroy'])->name('barang.destroy');
 
     // Admin update status penjualan
-    Route::patch('/penjualan/{id}/status', [PenjualanController::class, 'updateStatus'])->name('penjualan.updateStatus');
 });
+Route::patch('/penjualan/{id}/status', [PenjualanController::class, 'updateStatus'])->name('penjualan.updateStatus');
 Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users.index');
 });
